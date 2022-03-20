@@ -1,14 +1,29 @@
-var express = require("express");
-var cors = require("cors");
+const express = require("express");
+const cors = require("cors");
 require("dotenv").config();
+const multer = require("multer");
+const path = require("node:path");
 
-var app = express();
+const app = express();
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 app.use(cors());
-app.use("/public", express.static(process.cwd() + "/public"));
+app.use("/public", express.static(path.join(__dirname, "public")));
 
-app.get("/", (req, res) => {
-  res.sendFile(process.cwd() + "/views/index.html");
+app.get("/", (_, res) => {
+  res.sendFile(path.join(__dirname, "views", "index.html"));
+});
+
+app.post("/api/fileanalyse", upload.single("upfile"), (req, res) => {
+  const { originalname, mimetype, size } = req.file;
+
+  return res.json({
+    name: originalname,
+    type: mimetype,
+    size,
+  });
 });
 
 if (!process.env.DETA_RUNTIME) {
